@@ -9,51 +9,44 @@ library (Rmisc);library(tidyverse);library(lme4); library (lmerTest);library(tid
 
 #upload all the csv files into one data set 
 d =
-    list.files( pattern="*.csv") %>% # create a list of all csv files 
-    map_df(~read_csv(.))
+  list.files( pattern="*.csv") %>% # create a list of all csv files 
+  map_df(~read_csv(.))%>%
+  arrange(subject_id)
+
 
 #upload bias data 
-path ='model_bias_parameter/output/'
+path ='model_bias_parameter/output/' #define path 
 files <- dir(path, pattern = "*.csv") # get file names
 
-b <- data_frame(filename = files) %>% 
-  mutate(file_contents = map(filename,          # read files into
+b <- data_frame(filename = files) %>% #a colum of ciles 
+  mutate(file_contents = map(filename, #this create a tibble of each person
            ~ read_csv(file.path(path, .))))%>%
-  unnest()%>%
-  separate(filename, into=c("subject_id","ending"),sep = 2)%>%
-  select (-ending)
+  unnest()%>% #unnests the tibble
+  separate(filename, into=c("subject_id","ending"),sep = "_")%>% #seperate the id from the name of the file
+  select (-ending)%>% #remove the unnecesary file
+  arrange(subject_id)
 
-b=b%>%
-  rename(Mean of Possible Sums=meanCombinations,
-         sdCombinations = Stdev of Possible Sums,
-         pickedSum = Picked Sum)
+#changed he names of the files (to something that one could work with :))
+colnames(b)= c("subject_id", "combinationsSum", "combinationsSD", "pickedSum", "combinationsMinSum", "rankingFromMin","maxHomophilySum", "rankingFromMaxHomophily","biasCoef")
+
+#format varialbes
+d$condition = factor (d$condition, label = c("select", "control") )
+b$condition = d$condition # add condition to 
 
 
-
+b=subset (b,subject_id != 13)# removing 13 for now
 ```
 
 
 ```{r}
 
+r = lmer (rankingFromMaxHomophily~ condition + (1|subject_id),b);summary(r)
 
-dfc <- summarySE(b, measurevar="peerRating", groupvars=c("condition","elimKeep"), na.rm = T)
+r = lmer (combinationsSum~ condition + (1|subject_id),b);summary(r)
 
-#dfc$elimKeep=factor(dfc$elimKeep, label = c("eliminate", "keep"))
-pd <- position_dodge(0)
-ggplot(dfc, aes(x=condition, y=peerRating, fill=elimKeep)) + 
-    geom_bar(position=position_dodge(), stat="identity", colour="black" ) +
-    labs(title="")+
-    guides(fill=guide_legend(title=NULL))+
-    theme_bw()+
-    theme(plot.title = element_text(size = rel(1.5)),
-          axis.title.y = element_text(face="bold",  size=14),
-          axis.text.x  = element_text( vjust=0.5, size=18),
-          axis.text.y  = element_text( vjust=0.5, size=12),
-          axis.title.x = element_blank()) +  
-  coord_cartesian(ylim=c(3, 6)) +
-  ylab("Peer Rating")+
-  geom_errorbar(aes(ymin=peerRating-ci, ymax=peerRating+ci),
-                  width=.1,position=position_dodge(.9))
 
+
+ggplot(dfc, aes(x=meanBiasCoef, color=condition)) +
+  geom_density()
 ```
 
