@@ -1,0 +1,59 @@
+---
+title: "model bias parameter"
+output: html_notebook
+---
+```{r, include = FALSE, echo=FALSE}
+rm(list = ls())
+
+library (Rmisc);library(tidyverse);library(lme4); library (lmerTest);library(tidyboot)
+
+#upload all the csv files into one data set 
+d =
+    list.files( pattern="*.csv") %>% # create a list of all csv files 
+    map_df(~read_csv(.))
+
+#upload bias data 
+path ='model_bias_parameter/output/'
+files <- dir(path, pattern = "*.csv") # get file names
+
+b <- data_frame(filename = files) %>% 
+  mutate(file_contents = map(filename,          # read files into
+           ~ read_csv(file.path(path, .))))%>%
+  unnest()%>%
+  separate(filename, into=c("subject_id","ending"),sep = 2)%>%
+  select (-ending)
+
+b=b%>%
+  rename(Mean of Possible Sums=meanCombinations,
+         sdCombinations = Stdev of Possible Sums,
+         pickedSum = Picked Sum)
+
+
+
+```
+
+
+```{r}
+
+
+dfc <- summarySE(b, measurevar="peerRating", groupvars=c("condition","elimKeep"), na.rm = T)
+
+#dfc$elimKeep=factor(dfc$elimKeep, label = c("eliminate", "keep"))
+pd <- position_dodge(0)
+ggplot(dfc, aes(x=condition, y=peerRating, fill=elimKeep)) + 
+    geom_bar(position=position_dodge(), stat="identity", colour="black" ) +
+    labs(title="")+
+    guides(fill=guide_legend(title=NULL))+
+    theme_bw()+
+    theme(plot.title = element_text(size = rel(1.5)),
+          axis.title.y = element_text(face="bold",  size=14),
+          axis.text.x  = element_text( vjust=0.5, size=18),
+          axis.text.y  = element_text( vjust=0.5, size=12),
+          axis.title.x = element_blank()) +  
+  coord_cartesian(ylim=c(3, 6)) +
+  ylab("Peer Rating")+
+  geom_errorbar(aes(ymin=peerRating-ci, ymax=peerRating+ci),
+                  width=.1,position=position_dodge(.9))
+
+```
+
