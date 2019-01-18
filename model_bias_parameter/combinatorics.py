@@ -1,7 +1,7 @@
 import os.path
 import pandas as pd
 import itertools
-import statistics
+import numpy as np
 
 DATA_PATH = '../'
 
@@ -84,8 +84,8 @@ def simulation(subjID):
 		# print(maxhomo_rank)
 
 		#Find z score wrt maximizing homophily as forced mean
-		stdev = statistics.stdev(possible_sums)
-		mean = statistics.mean(possible_sums)
+		stdev = np.std(possible_sums)
+		mean = np.mean(possible_sums)
 		z = find_z(picked_sum, maxhomo_score, stdev)
 		# print("Z Score wrt maximizing homophily:")
 		# print(z)
@@ -98,6 +98,7 @@ def simulation(subjID):
 
 #Can iterate through all subjects to produce some output sheet, but check above first
 if __name__ == '__main__':
+	# simulation('13')
 	for i in range(91):
 	    if os.path.isfile(DATA_PATH+str(i)+'.csv'):
 	        simulation(str(i))
