@@ -35,7 +35,23 @@ b$condition = d$condition # add condition to
 
 
 b=subset (b,subject_id != 13)# removing 13 for now
+
+bs= subset(b, condition== "select")
 ```
+
+
+```{r}
+mean(bs$combinationsMinSum)
+
+mean(bs$maxHomophilySum)
+
+mean(bs$combinationsSum)
+
+
+mean(bs$rankingFromMaxHomophily)
+```
+
+
 
 
 ```{r}
