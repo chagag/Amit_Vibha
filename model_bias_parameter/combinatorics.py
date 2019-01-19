@@ -90,9 +90,9 @@ def simulation(subjID):
 		# print("Z Score wrt maximizing homophily:")
 		# print(z)
 
-		results = results.append(pd.Series([mean, stdev, picked_sum, possible_sums[0], min_rank, maxhomo_score, maxhomo_index, maxhomo_rank, z]), ignore_index = True)
+		results = results.append(pd.Series([mean, stdev, my_rating, picked_sum, possible_sums[0], min_rank, maxhomo_score, maxhomo_index, maxhomo_rank, z]), ignore_index = True)
 
-	results.columns = ["Mean of Possible Sums", "Stdev of Possible Sums", "Picked Sum", "Minimum Possible Sum", "Ranking From Min", "Maximizing Homophily Sum", "Maximizing Homophily Rank", "Ranking from Max. Homo.", "Z Score from Max. Homo."]
+	results.columns = ["Mean of Possible Sums", "Stdev of Possible Sums", "Participant Rating", "Picked Sum", "Minimum Possible Sum", "Ranking From Min", "Maximizing Homophily Sum", "Maximizing Homophily Rank", "Ranking from Max. Homo.", "Z Score from Max. Homo."]
 	results.to_csv("output/%s_bias.csv"%subjID, index = False)
 	# print(results)
 
