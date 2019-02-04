@@ -23,7 +23,11 @@ b <- data_frame(filename = files) %>% #a colum of ciles
            ~ read_csv(file.path(path, .))))%>%
   unnest()%>% #unnests the tibble
   separate(filename, into=c("subject_id","ending"),sep = "_")%>% #seperate the id from the name of the file
-  select (-ending)%>% #remove the unnecesary file
+  select (-ending)
+
+b$subject_id= as.integer(b$subject_id)
+
+b=b%>% #remove the unnecesary file
   arrange(subject_id)
 
 #changed he names of the files (to something that one could work with :))
@@ -34,13 +38,27 @@ d$condition = factor (d$condition, label = c("select", "control") )
 b$condition = d$condition # add condition to 
 
 
-b=subset (b,subject_id != 13)# removing 13 for now
+#b=subset (b,subject_id != 13)# removing 13 for now
+
+
+b=b%>%
+  nest(subject_id)%>%
+  mutate(trial = seq(1:20))%>%
+  unnest()
+
 
 bs= subset(b, condition== "select")
+ds = subset(d,condition =="select")
+
+
+
+
 ```
 
 
 ```{r}
+mean(ds$subject_rating)
+
 mean(bs$combinationsMinSum)
 
 mean(bs$maxHomophilySum)
@@ -56,13 +74,41 @@ mean(bs$rankingFromMaxHomophily)
 
 ```{r}
 
-r = lmer (rankingFromMaxHomophily~ condition + (1|subject_id),b);summary(r)
+r = lmer (biasCoef~ condition + (1|subject_id),b);summary(r)
 
 r = lmer (combinationsSum~ condition + (1|subject_id),b);summary(r)
 
 
 
-ggplot(dfc, aes(x=meanBiasCoef, color=condition)) +
+ggplot(b, aes(x=biasCoef, color=condition)) +
   geom_density()
+
+
+```
+
+```{r}
+r = lmer (biasCoef~ trial + (1|subject_id),bs);summary(r)
+
+
+
+dfc <- summarySE(b, measurevar="biasCoef", groupvars=c("trial", "condition"), na.rm = T)
+
+
+g = (ggplot(b,aes(x=trial, y=biasCoef ,fill = condition,colour = condition))
+  #+ geom_errorbar(aes(ymin=biasCoef-ci, ymax=biasCoef+ci), width=.1) 
+ +stat_smooth(aes(linetype=condition, colour =condition), 
+              size =1.2, method='lm',fill = "grey", 
+              se = T, na.rm =T) 
+  #+geom_point() 
+ # +scale_y_continuous(limits = c(-1, 3.5))
+  +theme_bw()
+  +theme(legend.title=element_blank(),
+         axis.title.y = element_text(  size=14),
+         axis.text.x  = element_text( vjust=0.5, size=14),
+         axis.text.y  = element_text( vjust=0.5, size=12),
+         axis.title.x = element_text(vjust=0.5, size=14)) 
+  +labs(title = "Difference to keep as a function of trial number", x = "trial number", y = " difference"));g
+
+
 ```
 
