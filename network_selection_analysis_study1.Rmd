@@ -8,7 +8,6 @@ output: html_notebook
 **1** - Homophily- Do participants choose people who are closer to their rating
 
 **2** - Friending vs. Unfriending - is there a difference in homophily when looking at the manipulation
-
 **3** - Choice strategyf
 
 **4** - stickiness.
@@ -78,14 +77,8 @@ d =left_join(d, t, by = c("subject_id","trial")) # add to d
 rm(t, sent)
   
 
- 
-#average keep columns 
-#d$realKeepMean= rowMeans(d[,c('kept_1_rating', 'kept_2_rating', 'kept_3_rating')], na.rm=T)
-#d$difKeepMean = rowMeans(d[,c('difKeep1', 'difKeep1', 'difKeep1')], na.rm=T)
-
-
 #**********add moderators to file*************************
-#m = read_csv('./moderators/network_moderators.csv') # we are reading the moderators file (which was collected via qualtrics)
+m = read_csv('./moderators/network_moderators.csv') # we are reading the moderators file (which was collected via qualtrics)
 #m = m[,c(19:93)] #cleaning
 #m$idenScale = rowMeans(m[,c('iden1', 'iden2', 'iden3', 'iden4','iden5')], na.rm=T)
 #m$idenScale = m$idenScale-13
@@ -223,6 +216,33 @@ g = (ggplot(dfc,aes(x=trial, y=peerRating ,fill = condition, colour = condition)
   +theme_bw()
   +theme(legend.title=element_blank(),axis.title.y = element_text(  size=14),axis.text.x  = element_text( vjust=0.5, size=14),axis.text.y  = element_text( vjust=0.5, size=12),axis.title.x = element_text(vjust=0.5, size=14))
   +labs(title = "keep as a function of trial number", x = "Trial number", y = " Keep"));g
+
+```
+
+###2 - Order of Elimination
+
+```{r order}
+#Only looking at eliminated because they select people to eliminate, not keep
+order = subset(dl, elimKeep == "eliminated")
+
+#Summarize wrt 'number', i.e. order in which they eliminated
+order_df <- summarySE(order, measurevar="peerDif", groupvars=c("number", "condition"), na.rm = T)
+
+#Graph with x axis being number = 1, 2, 3; y axis is peerDif
+ggplot(order_df, aes(x=number, y=peerDif, fill=condition)) + 
+    geom_bar(position=position_dodge(), stat="identity", colour="white" ) +
+    labs(title=" Difference between eliminated users and the participant as a function of order of elimination")+
+    guides(fill=guide_legend(title=NULL))+ #gets rid of legend title
+    theme_bw()+
+    theme(plot.title = element_text(size = 14),
+           axis.title.y = element_text(size=14),
+           axis.title.x = element_text(size=14),
+           axis.text.x  = element_text( vjust=0.5, size=12),
+           axis.text.y  = element_text( vjust=0.5, size=12)) +
+  ylab("Difference") +
+  xlab("Order of Elimination")+
+  geom_errorbar(aes(ymin=peerDif-ci, ymax=peerDif+ci),
+                  width=.1,position=position_dodge(.9))
 
 ```
 
@@ -928,8 +948,10 @@ write.csv(ak, "PeerIds.csv")
 
 ```
 
+#convert  to json 
+
 ```{r convert to json}
-library(jsonlite)
+library(jsonlite); library(tidyverse)
 
 table = read_csv("C:/Users/chaga/Google Drive/research/network selection/network_regulation_study_1_police_brutality/agent_ratings_FEMALE.csv")
 
@@ -937,6 +959,54 @@ table = read_csv("C:/Users/chaga/Google Drive/research/network selection/network
 table =toJSON(table)
 
 write(table, 'C:/Users/chaga/Google Drive/research/network selection/js_tasks/agent_data/agent_rating_FEMALE.json')
+
+
+tabletext = read_csv("C:/Users/chaga/Google Drive/research/network selection/network_regulation_study_1_police_brutality/agent_titles.csv")
+
+
+table =toJSON(tabletext)
+
+write(table, 'C:/Users/chaga/Google Drive/research/network selection/network_selection_jstask/agent_data/agent_texts.json')
+
+
+#lets try to merge them here 
+ratings = read_csv("C:/Users/chaga/Google Drive/research/network selection/network_regulation_study_1_police_brutality/agent_ratings_FEMALE.csv")
+
+texts = read_csv("C:/Users/chaga/Google Drive/research/network selection/network_regulation_study_1_police_brutality/agent_titles.csv")
+
+trial =seq(1:20)
+texts$trial = trial
+ratings$trial =trial
+
+colnames(texts) = colnames(ratings)
+
+
+ratings <- ratings %>% mutate_all(as.character)
+texts <- texts %>% mutate_all(as.character)
+
+ds3 <- bind_rows(texts, ratings)
+
+ds4 <- 
+    ds3 %>% 
+    gather(Jessica:Vanessa, key = name, value = value, -trial) %>% 
+    group_by(name,trial) %>% 
+    summarise(list = list(value)) %>% 
+    spread(name,list)%>%
+    ungroup() 
+
+ds4$trial=as.integer(ds4$trial)
+ds4=ds4 %>%
+  arrange(trial)%>%
+  select (-trial)
+
+table =toJSON(ds4)
+
+
+
+
+write(table, 'C:/Users/chaga/Google Drive/research/network selection/network_selection_jstask/agent_data/femaleAgents.json')
+
+
 ```
 #vibha simulation  - compare max homphily, one sided homophily an d
 
