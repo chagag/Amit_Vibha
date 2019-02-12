@@ -33,6 +33,8 @@ b=b%>% #remove the unnecesary file
 #changed he names of the files (to something that one could work with :))
 colnames(b)= c("subject_id", "combinationsSum", "combinationsSD", "pickedSum", "combinationsMinSum", "rankingFromMin","maxHomophilySum", "rankingFromMaxHomophily","biasCoef")
 
+
+
 #format varialbes
 d$condition = factor (d$condition, label = c("select", "control") )
 b$condition = d$condition # add condition to 
