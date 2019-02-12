@@ -78,7 +78,7 @@ rm(t, sent)
   
 
 #**********add moderators to file*************************
-m = read_csv('./moderators/network_moderators.csv') # we are reading the moderators file (which was collected via qualtrics)
+#m = read_csv('./moderators/network_moderators.csv') # we are reading the moderators file (which was collected via qualtrics)
 #m = m[,c(19:93)] #cleaning
 #m$idenScale = rowMeans(m[,c('iden1', 'iden2', 'iden3', 'iden4','iden5')], na.rm=T)
 #m$idenScale = m$idenScale-13
@@ -397,6 +397,16 @@ ggplot(model, aes(x=ratingChange, y=bias)) +
     geom_smooth()
 
 ```
+
+###selection strategy bt trial
+
+```{r}
+
+# crate a graph in which participants within-trial order is in the x axis and the difference between their rating and the agent rating is in the y axis. (seperated by condition )
+
+
+```
+
 
 
 ###3 - comparing to various algorithms - see Vibha's code  
