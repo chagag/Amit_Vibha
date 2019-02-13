@@ -40,12 +40,14 @@ d$condition = factor (d$condition, label = c("select", "control") )
 b$condition = d$condition # add condition to 
 
 
-#b=subset (b,subject_id != 13)# removing 13 for now
+b=subset (b,subject_id != 13)# removing 13 for now
+
+#b$subject_id = as.factor(b$subject_id)
 
 
 b=b%>%
-  nest(subject_id)%>%
-  mutate(trial = seq(1:20))%>%
+  nest(subject_id)#%>%
+  mutate(trial = seq(1:20))#%>%
   unnest()
 
 
